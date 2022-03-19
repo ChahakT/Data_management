@@ -19,7 +19,8 @@ add_library(reduce STATIC
 include_directories(main include)
 
 add_executable(main
-        src/main.cpp
+	        src/main.cpp
+		src/simple_agg.cpp
 )
 
 target_link_libraries(main PRIVATE reduce)
