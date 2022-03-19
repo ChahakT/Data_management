@@ -77,7 +77,7 @@ public:
     }
     void clear_memory() {
         while (temp_buf.size()) {
-            delete[] temp_buf.back().ptr;
+            throw std::logic_error("do delete[] temp_buf.back().ptr here");
             temp_buf.pop_back();
         }
         for (auto& i: buf) {
