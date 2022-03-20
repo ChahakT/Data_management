@@ -2,22 +2,7 @@
 #include <mpi.h>
 #include <unistd.h>
 #include "mpi_helper.h"
-
-class SimpleAgg {
-public:
-    template <class T>
-    void run(T* v, const int n, const int root, MPI_Comm comm);
-    template <class T>
-    void run(std::vector<T> &vec, const int root, MPI_Comm comm);
-};
-
-class SmartAgg {
-public:
-    template <class T>
-    void run(T* v, const int n);
-    template <class T>
-    void run(std::vector<T> &vec);
-};
+#include "agg.h"
 
 int main (int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
@@ -35,7 +20,12 @@ int main (int argc, char *argv[]) {
 
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
     // [1 2 3] [2 2 4] [3 2 5] = [6 6 12]
-    SmartAgg().run(vec);
+    std::vector<std::vector<int>> comm_groups;
+    comm_groups.push_back({1,2});
+    comm_groups.push_back({0,1});
+//    SimpleAgg().run(vec, 0, MPI_COMM_WORLD);
+
+    SmartAgg().run(vec, comm_groups);
     if (rank == 0) {
         std::cout << "\n[*] output = ";
         for (auto i: vec) {
