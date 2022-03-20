@@ -23,7 +23,7 @@ int main (int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
     MPIHelper::init(MPI_COMM_WORLD);
     const int rank = MPIHelper::get_rank();
-    const int size = MPIHelper::get_world_size();
+    //const int size = MPIHelper::get_world_size();
 
     char hostname[HOST_NAME_MAX + 1];
     gethostname(hostname, HOST_NAME_MAX + 1);

@@ -10,14 +10,14 @@ class SimpleAgg {
     void run(T* v, const int n, const int root, MPI_Comm comm) {
         const int WORLD_SIZE = MPIHelper::get_world_size();
         const int rank = MPIHelper::get_rank();
-        const auto  MPI_DataType = GET_TYPE<T>;
+        const auto  MPI_TYPE = GET_TYPE<T>;
         MPI_Request reqs[100];
         if (rank == 0) {
             std::vector<T*> buf(WORLD_SIZE-1);
             for (auto& i: buf) { i = new T[n]; i[0] = 999; }
             for (int i = 1; i < WORLD_SIZE; i++) {
                 auto& bufj = buf[i-1];
-                MPI_Irecv(bufj, n, MPI_INT, i, 1996, comm, reqs + i - 1);
+                MPI_Irecv(bufj, n, MPI_TYPE, i, 1996, comm, reqs + i - 1);
             }
             MPI_Waitall(WORLD_SIZE - 1, reqs, MPI_STATUSES_IGNORE);
             for (auto& bufj: buf) {
@@ -30,7 +30,7 @@ class SimpleAgg {
             for (auto& i: buf) delete[] i;
         } else {
             std::cerr << "reached rank " << rank;
-            MPI_Send(v, n, MPI_INT, root, 1996, comm);
+            MPI_Send(v, n, MPI_TYPE, root, 1996, comm);
             std::cerr << "Finished rank " << rank;
         }
     }

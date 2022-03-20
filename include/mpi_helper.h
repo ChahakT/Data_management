@@ -16,10 +16,10 @@ public:
 };
 
 template <class>
-MPI_Datatype GET_TYPE = MPI_INT;
+constexpr MPI_Datatype GET_TYPE = MPI_INT;
 
 template <>
-MPI_Datatype GET_TYPE<int> = MPI_INT;
+constexpr MPI_Datatype GET_TYPE<int> = MPI_INT;
 
 
 class MPIHelper {
