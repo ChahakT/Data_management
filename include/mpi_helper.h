@@ -16,11 +16,10 @@ public:
 };
 
 template <class>
-class GetMPIDataType;
+MPI_Datatype GET_TYPE = MPI_INT;
+
 template <>
-struct GetMPIDataType<int> {
-    using type = decltype(MPI_INT);
-};
+MPI_Datatype GET_TYPE<int> = MPI_INT;
 
 
 class MPIHelper {
@@ -77,7 +76,7 @@ public:
     }
     void clear_memory() {
         while (temp_buf.size()) {
-            throw std::logic_error("do delete[] temp_buf.back().ptr here");
+            delete[] (char*)(temp_buf.back().ptr);
             temp_buf.pop_back();
         }
         for (auto& i: buf) {
