@@ -13,6 +13,7 @@ void SimpleAgg::run(T* v, const int n, const int root, MPI_Comm comm) {
     const int WORLD_SIZE = MPIHelper::get_world_size();
     const int rank = MPIHelper::get_rank();
     const auto  MPI_TYPE = GET_TYPE<T>;
+
     MPI_Request reqs[100];
     if (rank == 0) {
         std::vector<T*> buf(WORLD_SIZE-1);

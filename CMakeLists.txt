@@ -23,5 +23,7 @@ add_executable(main
         src/main.cpp
         src/simple_agg.cpp
         src/smart_agg.cpp
-        include/agg.h)
+        include/agg.h
+        src/simple_intersect.cpp
+        include/intersect.h)
 

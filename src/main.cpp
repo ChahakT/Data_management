@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include "mpi_helper.h"
 #include "agg.h"
+#include <algorithm>
+#include "intersect.h"
 
 enum class RunType {
     SIMPLE_AGG,
@@ -11,7 +13,7 @@ enum class RunType {
     SMART_INTERSECT,
 };
 
-const RunType currentRun = RunType::SIMPLE_AGG;
+const RunType currentRun = RunType::SIMPLE_INTERSECT;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -54,7 +56,37 @@ void testSmartAggregation() {
 }
 
 void testSimpleIntersection() {
+    const int rank = MPIHelper::get_rank();
+    const int WORLD_SIZE = MPIHelper::get_world_size();
 
+    auto returnSection = [&rank, &WORLD_SIZE] (int n) {
+        std::vector<int> v(WORLD_SIZE*n);
+        std::iota(v.begin(), v.end(), 0);
+
+        std::mt19937 g(seed);
+        std::shuffle(v.begin(), v.end(), g);
+        std::vector<int> returnV(v.begin() + rank*n, v.begin() + (rank+1)*n);
+
+        std::cout << "\n[*] rank" << rank <<" vR/vS = ";
+        for (auto i: returnV)
+            std::cout << i << " ";
+        std::cout << "\n";
+
+        return returnV;
+    };
+    // vS = [0 1 2 3 4 5 6 7 8 9 10 11] -> shuffled
+    // vR = [0 1 2 3 4 5 6 7 8] -> shuffled
+    // common = [0 1 2 3 4 5 6 7 8] -> shuffled
+
+    std::vector<int> vR = returnSection(nR);
+    std::vector<int> vS = returnSection(nS);
+
+    std::vector<int> vec = SimpleIntersect().run(vR, vS, MPI_COMM_WORLD);
+
+    std::cout << "\n[*] rank" << rank <<" output = ";
+    for (auto i: vec)
+        std::cout << i << " ";
+    std::cout << "\n";
 }
 
 void testSmartIntersection() {
@@ -67,10 +99,10 @@ int main(int argc, char *argv[]) {
     getHostnameDetails(argc, argv);
 
     std::map<RunType, std::function<void()>> functionMap = {
-            {RunType::SIMPLE_AGG, testSimpleAggregation},
-            {RunType::SMART_AGG, testSmartAggregation},
+            {RunType::SIMPLE_AGG,       testSimpleAggregation},
+            {RunType::SMART_AGG,        testSmartAggregation},
             {RunType::SIMPLE_INTERSECT, testSimpleIntersection},
-            {RunType::SMART_INTERSECT, testSmartIntersection},
+            {RunType::SMART_INTERSECT,  testSmartIntersection},
     };
 
     functionMap[currentRun]();
