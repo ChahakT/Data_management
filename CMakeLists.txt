@@ -27,3 +27,4 @@ add_executable(main
         src/simple_intersect.cpp
         include/intersect.h)
 
+add_subdirectory(tests)
