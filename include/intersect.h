@@ -3,6 +3,7 @@
 #include <functional> // std::hash
 #include <assert.h>
 #include <stdexcept> // std::logic_error
+#include <iostream>
 
 typedef struct ompi_communicator_t *MPI_Comm; // typedef here to avoid incl mpi.h
 class SimpleIntersect {
@@ -14,6 +15,7 @@ public:
 };
 
 struct IntersectHash {
+public:
     IntersectHash(const std::vector<int>& v_): v(v_) {
         if (v.size() == 0)
             throw std::logic_error("cannot create IntersectHash with 0 vals");
@@ -27,6 +29,14 @@ struct IntersectHash {
         assert(it != v.end());
         return it - v.begin();
     }
+
+    int hash(int x, int flag) const {
+        const auto hash_v = x % v.back();
+        const auto it = std::upper_bound(v.begin(), v.end(), hash_v);
+        assert(it != v.end());
+        return it - v.begin();
+    }
+
 private:
     std::vector<int> v;
 };

@@ -19,9 +19,10 @@ void test_int() {
     std::vector<int> cnt(v.size(), 0);
     for (int i = 0; i < run_cnt; i++)
         cnt[hash.hash(i)]++;
-    for (int i = 0; i < v.size(); i++)
+    for (unsigned int i = 0; i < v.size(); i++)
         check_within(cnt[i], v[i] * run_fac);
 }
+
 void test_string() {
     const std::vector<int> v = {100, 50, 200};
     const int sum = std::accumulate(v.begin(), v.end(), 0);
@@ -31,12 +32,18 @@ void test_string() {
     std::vector<int> cnt(v.size(), 0);
     for (int i = 0; i < run_cnt; i++)
         cnt[hash.hash(std::to_string(i))]++;
-    for (int i = 0; i < v.size(); i++)
+    for (unsigned int i = 0; i < v.size(); i++)
         check_within(cnt[i], v[i] * run_fac, 3);
 }
 
+int test_int(int x) {
+    const std::vector<int> v = {15, 5, 10};
+    IntersectHash obj(v);
+    return obj.hash(x, 1);
+}
 
-int main() {
-    test_int();
-    test_string();
+int main(int argc, char* argv[]) {
+//    test_int();
+//    test_string();
+    std::cout << test_int(atoi(argv[1])) << "\n";
 }
