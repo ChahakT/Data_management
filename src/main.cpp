@@ -13,7 +13,7 @@ enum class RunType {
     SMART_INTERSECT,
 };
 
-const RunType currentRun = RunType::SIMPLE_INTERSECT;
+const RunType currentRun = RunType::SIMPLE_AGG;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -90,7 +90,25 @@ void testSimpleIntersection() {
 }
 
 void testSmartIntersection() {
+    std::cout << "Test smart intersect\n";
+    std::vector<int> vR = {1, 2, 3, 4, 5, 6 ,7, 8};
+    std::vector<int> vS = {6, 3, 1, 10, 2, 7, 78, 8};
+    std::vector<int> result = {1, 2, 3, 7, 8};
 
+    std::vector<std::vector<int>> comm_groups;
+    comm_groups.push_back({0, 1});
+    comm_groups.push_back({2, 3});
+
+    std::vector<std::vector<int>> dist;
+    dist.push_back({2, 2});
+    dist.push_back({2, 2});
+
+    const int rank = MPIHelper::get_rank();
+//    const int WORLD_SIZE = MPIHelper::get_world_size();
+
+    std::vector<int> my_vR = std::vector<int>(vR.begin()+2*rank, vR.begin()+2*(rank+1));
+    std::vector<int> my_vS = std::vector<int>(vS.begin()+2*rank, vS.begin()+2*(rank+1));
+    SmartIntersect().run(my_vR, my_vS, comm_groups, dist);
 }
 
 int main(int argc, char *argv[]) {

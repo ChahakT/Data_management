@@ -12,7 +12,7 @@ std::vector<T> SimpleIntersect::run(std::vector<T> &vR, std::vector<T> &vS, MPI_
 template<class T>
 std::vector<T> SimpleIntersect::run(T *vR, T *vS, const int nR, const int nS, MPI_Comm comm) {
     const int WORLD_SIZE = MPIHelper::get_world_size();
-    const int rank = MPIHelper::get_rank();
+//    const int rank = MPIHelper::get_rank();
     const auto MPI_TYPE = GET_TYPE<T>;
 
     std::vector<T> buf(WORLD_SIZE * nR);

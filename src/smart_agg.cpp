@@ -3,7 +3,7 @@
 #include <vector>
 #include "agg.h"
 
-std::vector<MPI_Comm> SmartAgg::get_comm(std::vector <std::vector<int>> comm_groups) {
+std::vector<MPI_Comm> SmartAgg::get_comm(std::vector <std::vector<int>> &comm_groups) {
     MPI_Group world_group;
     MPI_Comm_group(MPI_COMM_WORLD, &world_group);
 
