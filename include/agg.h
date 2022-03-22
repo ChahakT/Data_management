@@ -2,11 +2,11 @@
 
 class SmartAgg {
 public:
-    std::vector<MPI_Comm> get_comm(std::vector<std::vector<int>>);
+    std::vector<MPI_Comm> get_comm(std::vector<std::vector<int>> &comm_groups);
     template <class T>
-    void run(T* v, const int n, std::vector<std::vector<int>>&);
+    void run(T* v, const int n, std::vector<std::vector<int>> &comm_groups);
     template <class T>
-    void run(std::vector<T> &vec, std::vector<std::vector<int>>&);
+    void run(std::vector<T> &vec, std::vector<std::vector<int>> &comm_groups);
 };
 
 class SimpleAgg {
