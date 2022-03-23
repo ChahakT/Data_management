@@ -28,8 +28,8 @@ add_executable(main
         src/smart_agg.cpp
         include/agg.h
         src/simple_intersect.cpp
-        include/timing.cpp
         include/intersect.h
         src/smart_intersection.cpp)
 
 add_subdirectory(tests)
+add_subdirectory(benchmark)

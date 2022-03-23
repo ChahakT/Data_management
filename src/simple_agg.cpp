@@ -22,18 +22,21 @@ void SimpleAgg::run(T* v, const int n, const int root, MPI_Comm comm) {
             MPI_Irecv(bufj, n, MPI_TYPE, i, 1996, comm, reqs + i - 1);
         }
         MPI_Waitall(WORLD_SIZE - 1, reqs, MPI_STATUSES_IGNORE);
-        for (auto& bufj: buf) {
-            std::cout << "\n[*]: ";
-            for (int i = 0; i < n; i++) {
-                std::cout << bufj[i] << " ";
-                v[i] += bufj[i];
+        if(showLog) {
+            for (auto& bufj: buf) {
+                std::cout << "\n[*]: ";
+                for (int i = 0; i < n; i++) {
+                    std::cout << bufj[i] << " ";
+                    v[i] += bufj[i];
+                }
             }
         }
+
         for (auto& i: buf) delete[] i;
     } else {
-        std::cerr << "reached rank " << rank;
+        if(showLog) std::cerr << "reached rank " << rank;
         MPI_Send(v, n, MPI_TYPE, root, 1996, comm);
-        std::cerr << "Finished rank " << rank;
+        if(showLog) std::cerr << "Finished rank " << rank;
     }
 }
 
