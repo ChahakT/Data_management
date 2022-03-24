@@ -1,9 +1,7 @@
-hosts=("pc245.emulab.net"
-       "pc255.emulab.net"
-       "pc254.emulab.net"
-       "pc247.emulab.net"
-       "pc250.emulab.net"
-       "pc246.emulab.net")
+hosts=("pc201.emulab.net"
+       "pc202.emulab.net"
+       "pc203.emulab.net"
+       "pc204.emulab.net")
 
 rm all-keys.txt
 for host in "${hosts[@]}"

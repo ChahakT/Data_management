@@ -14,27 +14,28 @@
 //}
 
 #include <mpi.h>
-#include <bits/stdc++.h>
 #include <unistd.h>
+#include <climits>
+#include <math.h>
 #include <chrono>
 #include "mpi_helper.h"
 #include "agg.h"
 #include <algorithm>
 #include "timing.hpp"
 
-#define DISABLE_LOG
-
-const size_t initialVectorSize = 1024;
-const size_t maxVectorSize = 1e5;
-const uint64_t MAX_TIME_LIMIT_RUN_SEC = 5;
-const uint64_t MAX_TIME_LIMIT_ITER_SEC = 20;
+namespace {
+    constexpr size_t initialVectorSize = 1024;
+    constexpr size_t maxVectorSize = 1e5;
+    constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 1;
+    constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 3;
+}
 
 enum class RunType {
     SIMPLE_AGG,
     SMART_AGG,
 };
 
-const RunType currentRun = RunType::SMART_AGG;
+const RunType currentRun = RunType::SIMPLE_AGG;
 
 uint64_t convertToNanoSec(uint64_t x) {
     auto fac = (uint64_t) 1e9;
@@ -49,8 +50,8 @@ void testAgg(std::vector<int> &vec) {
         case RunType::SMART_AGG:
             std::vector<std::vector<int>> comm_groups;
             // host-3 is the weak link
-            comm_groups.push_back({0, 1, 3});
-            comm_groups.push_back({2, 0});
+            comm_groups.push_back({1, 2});
+            comm_groups.push_back({0, 1});
             SmartAgg(false).run(vec, comm_groups);
             break;
     }
@@ -76,18 +77,28 @@ void runTestAgg(std::string measureName) {
             ClockTracker loopBreak(dummy);
             testAgg(vec);
             ts = loopBreak.get_ns();
+            if(rank == 0)
+                std::cout<<"Running size test "<<runningSize<<" Time taken "<<ts<<std::endl;
             if (ts > convertToNanoSec(MAX_TIME_LIMIT_RUN_SEC)) break;
         }
+        {
+            Stats dummy;
+            ClockTracker loopBreak(dummy);
+            Stats measurement(measureName + "," + std::to_string(runningSize), rank == 0);
+            int loopCount = (int) log((convertToNanoSec(MAX_TIME_LIMIT_ITER_SEC) / ts) + 1) + 1;
 
-        Stats measurement(measureName + "," + std::to_string(runningSize), rank == 0);
-        for (uint64_t i = 0; i < convertToNanoSec(MAX_TIME_LIMIT_ITER_SEC) / ts; i++) {
-            MPI_Barrier(MPI_COMM_WORLD);
-            ClockTracker _(measurement);
-            testAgg(vec);
+            for (int i = 0; i < 10; i++) {
+                MPI_Barrier(MPI_COMM_WORLD);
+                ClockTracker _(measurement);
+                testAgg(vec);
+            }
+            if(rank == 0)
+                std::cout<<"Running size "<<runningSize<<" Time taken "<<loopBreak.get_ns()<<std::endl;
         }
         runningSize *= 2;
         if (runningSize > maxVectorSize) break;
     }
+    std::cout<<"Finished test gracefully rank "<<rank<<std::endl;
 }
 
 void getHostnameDetails(int argc, char *argv[]) {

@@ -58,6 +58,11 @@ void SmartAgg::run(T *v, const int n, std::vector <std::vector<int>> &comm_group
         }
     }
 
+    if (MPI_COMM_NULL != comm1)
+        MPI_Comm_free(&comm1);
+    if (MPI_COMM_NULL != comm2)
+        MPI_Comm_free(&comm2);
+
 }
 
 template void SmartAgg::run<int>(int *, const int, std::vector <std::vector<int>> &);

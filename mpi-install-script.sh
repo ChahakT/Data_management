@@ -36,7 +36,7 @@ mpi-run() {
 
 mpi-agg-benchmark() {
   rm -rf /proj/AdvOSUWMadison/MPI/tmp/benchmark_agg
-  cp /users/kkhare/git_proj/build/benchmark/benchmark_agg /proj/AdvOSUWMadison/MPI/tmp
+  cp /users/kkhare/git_proj/build/benchmark_agg /proj/AdvOSUWMadison/MPI/tmp
   cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/MPI/tmp/
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
   mpirun -n "${node_count}" --hostfile /proj/AdvOSUWMadison/MPI/tmp/hostfile /proj/AdvOSUWMadison/MPI/tmp/benchmark_agg

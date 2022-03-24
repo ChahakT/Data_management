@@ -31,5 +31,9 @@ add_executable(main
         include/intersect.h
         src/smart_intersection.cpp)
 
-add_subdirectory(tests)
-add_subdirectory(benchmark)
+add_executable(benchmark_agg
+        benchmark/benchmark_agg.cpp
+        src/smart_agg.cpp
+        src/simple_agg.cpp)
+#add_subdirectory(tests)
+#add_subdirectory(benchmark)
