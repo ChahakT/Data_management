@@ -19,14 +19,17 @@
 #include <cmath>
 #include <cassert>
 #include <chrono>
+#include <map>
+#include <vector>
+#include <algorithm>
 #include "mpi_helper.h"
 #include "agg.h"
-#include <algorithm>
 #include "timing.hpp"
 
 namespace {
     constexpr size_t initialVectorSize = 1024;
-    constexpr size_t maxVectorSize = 1e5;
+    constexpr size_t maxVectorSize =
+            std::min((size_t) std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
     constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 1;
     constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 3;
 }
@@ -51,12 +54,8 @@ void testAgg(std::vector<int> &vec, void *ptr) {
         }
             break;
         case RunType::SMART_AGG:
-            auto *psmartAgg = (SmartAgg *) ptr;
-            std::vector<std::vector<int>> comm_groups;
-            // host-3 is the weak link
-            comm_groups.push_back({1, 2});
-            comm_groups.push_back({0, 1});
-            psmartAgg->run(vec, comm_groups);
+            auto *pSmartAgg = (SmartAgg<int> *) ptr;
+            pSmartAgg->run(vec);
             break;
     }
     // We are not checking correctness here probably
@@ -69,7 +68,7 @@ std::vector<int> createVector(size_t vectorSize) {
     return vec;
 }
 
-std::tuple<std::string, void*> getAggObject(size_t vectorSize) {
+std::tuple<std::string, void *> getAggObject(size_t vectorSize) {
     std::string measureName;
     switch (currentRun) {
         case RunType::SIMPLE_AGG: {
@@ -77,7 +76,12 @@ std::tuple<std::string, void*> getAggObject(size_t vectorSize) {
             return {"simple_agg", ptr};
         }
         case RunType::SMART_AGG: {
-            void *ptr = new SmartAgg(false);
+            // host-3 is the weak link
+            std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
+                    {0, {{1, 2}}},
+                    {1, {{0, 1}}},
+            };
+            void *ptr = new SmartAgg<int>(stepCommInstructions);
             return {"smart_agg", ptr};
         }
     }
@@ -90,7 +94,7 @@ void runTestAgg() {
     while (true) {
         uint64_t ts = 0;
         std::vector<int> vec = createVector(runningSize);
-        auto [measureName, ptr] = getAggObject(runningSize);
+        auto[measureName, ptr] = getAggObject(runningSize);
         assert(ptr != nullptr);
         {
             Stats dummy;
@@ -115,6 +119,8 @@ void runTestAgg() {
         runningSize *= 2;
         if (runningSize > maxVectorSize) break;
     }
+    std::cerr << "Completed tests rank " << rank << std::endl;
+    MPI_Abort(MPI_COMM_WORLD, 0); // Change this hack if possible, not at all good
 }
 
 void getHostnameDetails(int argc, char *argv[]) {
@@ -124,7 +130,7 @@ void getHostnameDetails(int argc, char *argv[]) {
     std::cerr << hostname << " " << argc << " -> ";
     for (int i = 0; i < argc; i++)
         std::cerr << argv[i] << " | ";
-    std::cout << "\n";
+    std::cerr << "\n";
 }
 
 int main(int argc, char *argv[]) {
