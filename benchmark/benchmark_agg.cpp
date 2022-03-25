@@ -29,11 +29,8 @@
 namespace {
     constexpr size_t initialVectorSize = 1024;
     constexpr size_t maxVectorSize =
-<<<<<<< HEAD
             std::min<size_t>(std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
-=======
-            std::min((size_t) std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
->>>>>>> 84181dad9af6010ab67fadfdb85b15d57533c275
+//            std::min((size_t) std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
     constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 1;
     constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 3;
 }
@@ -43,7 +40,6 @@ enum class RunType {
     SMART_AGG,
 };
 
-<<<<<<< HEAD
 constexpr RunType currentRun = RunType::SIMPLE_AGG;
 
 uint64_t convertToNanoSec(uint64_t x) {
@@ -62,24 +58,6 @@ void testAgg(std::vector<int> &vec, void *ptr) {
 
         case RunType::SMART_AGG:
             pSmartAgg = (SmartAgg<int> *) ptr;
-=======
-const RunType currentRun = RunType::SIMPLE_AGG;
-
-uint64_t convertToNanoSec(uint64_t x) {
-    auto fac = (uint64_t) 1e9;
-    return x * fac;
-}
-
-void testAgg(std::vector<int> &vec, void *ptr) {
-    switch (currentRun) {
-        case RunType::SIMPLE_AGG: {
-            auto *pSimpleAgg = (SimpleAgg<int> *) ptr;
-            pSimpleAgg->run(vec, 0, MPI_COMM_WORLD);
-        }
-            break;
-        case RunType::SMART_AGG:
-            auto *pSmartAgg = (SmartAgg<int> *) ptr;
->>>>>>> 84181dad9af6010ab67fadfdb85b15d57533c275
             pSmartAgg->run(vec);
             break;
     }
