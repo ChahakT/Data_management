@@ -1,9 +1,12 @@
-#include <bits/stdc++.h>
-#include <mpi.h>
 #include <unistd.h>
+#include <climits>
+#include <map>
+#include <vector>
+#include <numeric>
+#include <random>
+#include <mpi.h>
 #include "mpi_helper.h"
 #include "agg.h"
-#include <algorithm>
 #include "intersect.h"
 
 enum class RunType {
@@ -13,7 +16,7 @@ enum class RunType {
     SMART_INTERSECT,
 };
 
-const RunType currentRun = RunType::SIMPLE_AGG;
+const RunType currentRun = RunType::SMART_AGG;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -42,11 +45,11 @@ void testSmartAggregation() {
     const int rank = MPIHelper::get_rank();
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
     // [1 2 3] [2 2 4] [3 2 5] = [6 6 12]
-    std::vector<std::vector<int>> comm_groups;
-    comm_groups.push_back({1, 2});
-    comm_groups.push_back({0, 1});
-
-    SmartAgg().run(vec, comm_groups);
+    std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
+            {0, {{1, 2}}},
+            {1, {{0, 1}}},
+    };
+    SmartAgg<int>(stepCommInstructions).run(vec);
     if (rank == 0) {
         std::cout << "\n[*] output = ";
         for (auto i: vec)
