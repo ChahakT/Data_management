@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+
 class MPIHelper;
 constexpr bool enable_debug = false;
 class Buf {
@@ -16,7 +17,7 @@ public:
 };
 
 template <class>
-constexpr MPI_Datatype GET_TYPE = MPI_INT;
+constexpr MPI_Datatype GET_TYPE = MPI_DATATYPE_NULL;
 
 template <>
 constexpr MPI_Datatype GET_TYPE<int> = MPI_INT;
@@ -25,7 +26,7 @@ constexpr MPI_Datatype GET_TYPE<int> = MPI_INT;
 class MPIHelper {
     int rank = -1;
     int world_size = -1;
-    MPIHelper() {}
+    MPIHelper() = default;
     constexpr static int BUF_LEN = 3;
     std::array<Buf, BUF_LEN> buf;
     std::vector<Buf> temp_buf;
