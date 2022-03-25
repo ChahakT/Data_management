@@ -29,7 +29,7 @@ void testSimpleAggregation() {
     const int rank = MPIHelper::get_rank();
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
 
-    SimpleAgg().run(vec, 0, MPI_COMM_WORLD);
+    SimpleAgg<int>(vec.size()).run(vec, 0, MPI_COMM_WORLD);
     if (rank == 0) {
         std::cout << "\n[*] output = ";
         for (auto i: vec)

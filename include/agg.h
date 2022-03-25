@@ -12,13 +12,12 @@ public:
     void run(std::vector<T> &vec, std::vector<std::vector<int>> &comm_groups);
 };
 
+template <class T>
 class SimpleAgg {
-    bool showLog;
+    std::vector<T*> buf;
 public:
-    SimpleAgg(): showLog(true) {};
-    explicit SimpleAgg(bool showLog_) : showLog(showLog_) {}
-    template <class T>
-    void run(T* v, const int n, const int root, MPI_Comm comm);
-    template <class T>
-    void run(std::vector<T> &vec, const int root, MPI_Comm comm);
+    explicit SimpleAgg(size_t n);
+    void run(T* v, size_t n, int root, MPI_Comm comm);
+    void run(std::vector<T> &vec, int root, MPI_Comm comm);
+    ~SimpleAgg();
 };

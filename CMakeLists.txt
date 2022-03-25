@@ -22,18 +22,16 @@ add_compile_options(
 
 include_directories(main include)
 
-add_executable(main
-        src/main.cpp
-        src/simple_agg.cpp
-        src/smart_agg.cpp
-        include/agg.h
-        src/simple_intersect.cpp
-        include/intersect.h
-        src/smart_intersection.cpp)
+add_library(simple_agg STATIC src/simple_agg.cpp)
+add_library(smart_agg STATIC src/smart_agg.cpp)
+add_library(simple_intersect STATIC src/simple_intersect.cpp)
+add_library(smart_intersect STATIC src/smart_intersection.cpp)
 
-add_executable(benchmark_agg
-        benchmark/benchmark_agg.cpp
-        src/smart_agg.cpp
-        src/simple_agg.cpp)
+add_executable(main src/main.cpp)
+
+add_executable(benchmark_agg benchmark/benchmark_agg.cpp)
+
+target_link_libraries(main PRIVATE simple_agg smart_agg simple_intersect smart_intersect)
+target_link_libraries(benchmark_agg PRIVATE simple_agg smart_agg simple_intersect smart_intersect)
 #add_subdirectory(tests)
 #add_subdirectory(benchmark)
