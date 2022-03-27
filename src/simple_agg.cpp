@@ -27,10 +27,13 @@ void SimpleAgg<T>::run(T *v, const size_t n, const int root, MPI_Comm comm) {
     const auto MPI_TYPE = GET_TYPE<T>;
 
     MPI_Request reqs[100];
-    if (rank == 0) {
-        for (int i = 1; i < WORLD_SIZE; i++) {
-            auto& bufJ = buf[i - 1];
-            MPI_Irecv(bufJ.get(), n, MPI_TYPE, i, TAG, comm, reqs + i - 1);
+    if (rank == root) {
+        int counter = 0;
+        for (int i = 0; i < WORLD_SIZE; i++) {
+            if(i == root) continue;
+            auto& bufJ = buf[counter];
+            MPI_Irecv(bufJ.get(), n, MPI_TYPE, i, TAG, comm, reqs +counter);
+            counter++;
         }
         MPI_Waitall(WORLD_SIZE - 1, reqs, MPI_STATUSES_IGNORE);
         for (auto &bufJ: buf) {

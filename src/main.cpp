@@ -32,8 +32,8 @@ void testSimpleAggregation() {
     const int rank = MPIHelper::get_rank();
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
 
-    SimpleAgg<int>(vec.size()).run(vec, 0, MPI_COMM_WORLD);
-    if (rank == 0) {
+    SimpleAgg<int>(vec.size()).run(vec, 2, MPI_COMM_WORLD);
+    if (rank == 2) {
         std::cout << "\n[*] output = ";
         for (auto i: vec)
             std::cout << i << " ";
@@ -46,8 +46,8 @@ void testSmartAggregation() {
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
     // [1 2 3] [2 2 4] [3 2 5] = [6 6 12]
     std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
-            {0, {{1, 2}}},
-            {1, {{0, 1}}},
+            {0, {{2, 1}}},
+            {1, {{0, 2}}},
     };
     SmartAgg<int>(stepCommInstructions).run(vec);
     if (rank == 0) {
