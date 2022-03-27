@@ -29,9 +29,9 @@
 namespace {
     constexpr size_t initialVectorSize = 1024;
     constexpr size_t maxVectorSize =
-            std::min((size_t) std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
-    constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 1;
-    constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 3;
+            std::min<size_t>(std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
+    constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 5;
+    constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 10;
 }
 
 enum class RunType {
@@ -39,24 +39,19 @@ enum class RunType {
     SMART_AGG,
 };
 
-const RunType currentRun = RunType::SIMPLE_AGG;
+constexpr RunType currentRun = RunType::SIMPLE_AGG;
 
 uint64_t convertToNanoSec(uint64_t x) {
-    auto fac = (uint64_t) 1e9;
-    return x * fac;
+    constexpr uint64_t NANOSECONDS = 1e9;
+    return x * NANOSECONDS;
 }
 
-void testAgg(std::vector<int> &vec, void *ptr) {
-    switch (currentRun) {
-        case RunType::SIMPLE_AGG: {
-            auto *pSimpleAgg = (SimpleAgg<int> *) ptr;
-            pSimpleAgg->run(vec, 0, MPI_COMM_WORLD);
-        }
-            break;
-        case RunType::SMART_AGG:
-            auto *pSmartAgg = (SmartAgg<int> *) ptr;
-            pSmartAgg->run(vec);
-            break;
+template<RunType R, class T>
+void testAgg(std::vector<int> &vec, T& obj) {
+    if constexpr(R == RunType::SIMPLE_AGG) {
+        obj->run(vec, 0, MPI_COMM_WORLD);
+    } else if constexpr(R == RunType::SMART_AGG) {
+        obj->run(vec);
     }
     // We are not checking correctness here probably
 }
@@ -68,39 +63,37 @@ std::vector<int> createVector(size_t vectorSize) {
     return vec;
 }
 
-std::tuple<std::string, void *> getAggObject(size_t vectorSize) {
+template<RunType R>
+auto getAggObject(size_t vectorSize) {
     std::string measureName;
-    switch (currentRun) {
-        case RunType::SIMPLE_AGG: {
-            void *ptr = new SimpleAgg<int>(vectorSize);
-            return {"simple_agg", ptr};
-        }
-        case RunType::SMART_AGG: {
-            // host-3 is the weak link
-            std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
-                    {0, {{1, 2}}},
-                    {1, {{0, 1}}},
-            };
-            void *ptr = new SmartAgg<int>(stepCommInstructions);
-            return {"smart_agg", ptr};
-        }
-    }
-    return {"", nullptr};
+    if constexpr(R == RunType::SIMPLE_AGG) {
+        auto obj = std::make_unique<SimpleAgg<int>>(vectorSize);
+        return std::make_pair<std::string, std::unique_ptr<SimpleAgg<int>>>("simple_agg", std::move(obj));
+    } else if constexpr(R == RunType::SMART_AGG) {
+        std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
+                {0, {{1, 2}}},
+                {1, {{0, 1}}},
+        };
+        auto obj = std::make_unique<SmartAgg<int>>(stepCommInstructions);
+        return std::make_pair<std::string, std::unique_ptr<SmartAgg<int>>>("smart_agg", std::move(obj));
+    } else
+        return std::nullopt;
+
 }
 
+template<RunType R>
 void runTestAgg() {
     int rank = MPIHelper::get_rank();
     size_t runningSize = initialVectorSize;
     while (true) {
         uint64_t ts = 0;
         std::vector<int> vec = createVector(runningSize);
-        auto[measureName, ptr] = getAggObject(runningSize);
-        assert(ptr != nullptr);
+        auto[measureName, obj] = getAggObject<R>(runningSize);
         {
             Stats dummy;
             MPI_Barrier(MPI_COMM_WORLD);
             ClockTracker loopBreak(dummy);
-            testAgg(vec, ptr);
+            testAgg<R>(vec, obj);
             ts = loopBreak.get_ns();
             if (ts > convertToNanoSec(MAX_TIME_LIMIT_RUN_SEC)) break;
         }
@@ -109,14 +102,16 @@ void runTestAgg() {
             ClockTracker loopBreak(dummy);
             Stats measurement(measureName + "," + std::to_string(runningSize), rank == 0);
             uint loopCount = (rank == 0) ? (uint) convertToNanoSec(MAX_TIME_LIMIT_ITER_SEC) / ts : 0;
+            loopCount = std::max<uint>(loopCount, 5);
+            loopCount = std::min<uint>(loopCount, 1e4);
             MPI_Bcast(&loopCount, 1, GET_TYPE<int>, 0, MPI_COMM_WORLD);
             for (uint i = 0; i < loopCount; i++) {
                 MPI_Barrier(MPI_COMM_WORLD);
                 ClockTracker _(measurement);
-                testAgg(vec, ptr);
+                testAgg<R>(vec, obj);
             }
         }
-        runningSize *= 2;
+        runningSize = (size_t) ((double) runningSize * 1.5);
         if (runningSize > maxVectorSize) break;
     }
     std::cerr << "Completed tests rank " << rank << std::endl;
@@ -138,6 +133,6 @@ int main(int argc, char *argv[]) {
     MPIHelper::init(MPI_COMM_WORLD);
     getHostnameDetails(argc, argv);
 
-    runTestAgg();
+    runTestAgg<currentRun>();
     MPI_Finalize();
 }

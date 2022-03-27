@@ -10,14 +10,9 @@ namespace {
 template<class T>
 SimpleAgg<T>::SimpleAgg(size_t n) {
     const int WORLD_SIZE = MPIHelper::get_world_size();
-    std::vector<T*> buf_(WORLD_SIZE-1);
-    for (auto& i: buf_) { i = new T[n]; i[0] = 999; }
-    buf = buf_;
-}
-
-template<class T>
-SimpleAgg<T>::~SimpleAgg() {
-    for (auto &i: buf) delete[] i;
+    std::vector<std::unique_ptr<T[]>> buf_(WORLD_SIZE-1);
+    for (auto& i: buf_) { i = std::make_unique<T[]>(n); i[0] = 999; }
+    buf = std::move(buf_);
 }
 
 template<class T>
@@ -35,7 +30,7 @@ void SimpleAgg<T>::run(T *v, const size_t n, const int root, MPI_Comm comm) {
     if (rank == 0) {
         for (int i = 1; i < WORLD_SIZE; i++) {
             auto& bufJ = buf[i - 1];
-            MPI_Irecv(bufJ, n, MPI_TYPE, i, TAG, comm, reqs + i - 1);
+            MPI_Irecv(bufJ.get(), n, MPI_TYPE, i, TAG, comm, reqs + i - 1);
         }
         MPI_Waitall(WORLD_SIZE - 1, reqs, MPI_STATUSES_IGNORE);
         for (auto &bufJ: buf) {

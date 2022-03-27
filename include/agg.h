@@ -14,10 +14,9 @@ public:
 
 template <class T>
 class SimpleAgg {
-    std::vector<T*> buf;
+    std::vector<std::unique_ptr<T[]>> buf;
 public:
     explicit SimpleAgg(size_t n);
     void run(T* v, size_t n, int root, MPI_Comm comm);
     void run(std::vector<T> &vec, int root, MPI_Comm comm);
-    ~SimpleAgg();
 };
