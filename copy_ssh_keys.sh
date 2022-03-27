@@ -1,4 +1,4 @@
-hosts=("pc201.emulab.net"
+  hosts=("pc201.emulab.net"
        "pc202.emulab.net"
        "pc203.emulab.net"
        "pc204.emulab.net")
