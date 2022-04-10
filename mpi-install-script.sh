@@ -22,24 +22,24 @@ cmake-install() {
 
 mpi-copy() {
   echo "WARNING: No need to mpi-copy anymore, directly run mpi-run/mpi-benchmark"
-  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/MPI/tmp/
-  cp /users/kkhare/git_proj/build/main /proj/AdvOSUWMadison/MPI/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/build/main /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
 }
 
 mpi-run() {
-  rm -rf /proj/AdvOSUWMadison/MPI/tmp/main
-  cp /users/kkhare/git_proj/build/main /proj/AdvOSUWMadison/MPI/tmp
-  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/MPI/tmp/
+  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/main
+  cp /users/kkhare/git_proj/build/main /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
-  mpirun -n "${node_count}" --hostfile /proj/AdvOSUWMadison/MPI/tmp/hostfile /proj/AdvOSUWMadison/MPI/tmp/main
+  mpirun -n "${node_count}" --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/main
 }
 
 mpi-agg-benchmark() {
-  rm -rf /proj/AdvOSUWMadison/MPI/tmp/benchmark_agg
-  cp /users/kkhare/git_proj/build/benchmark_agg /proj/AdvOSUWMadison/MPI/tmp
-  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/MPI/tmp/
+  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_agg
+  cp /users/kkhare/git_proj/build/benchmark_agg /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
-  mpirun -n "${node_count}" --hostfile /proj/AdvOSUWMadison/MPI/tmp/hostfile /proj/AdvOSUWMadison/MPI/tmp/benchmark_agg
+  mpirun -n "${node_count}" --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_agg
 }
 
 # Check if the function exists (bash specific)
