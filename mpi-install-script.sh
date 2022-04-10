@@ -2,7 +2,7 @@
 
 mpi-install() {
   sudo apt-get update
-  sudo apt-get install openmpi-bin libopenmpi-dev
+  sudo apt-get install openmpi-bin libopenmpi-dev -y
   mpic++ --version
 }
 
@@ -14,10 +14,10 @@ cmake-install() {
   wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
   sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
   sudo apt update
-  sudo apt install kitware-archive-keyring
+  sudo apt install kitware-archive-keyring -y
   sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
   sudo apt update
-  sudo apt install cmake
+  sudo apt install cmake -y
 }
 
 mpi-copy() {

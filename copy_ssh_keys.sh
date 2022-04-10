@@ -1,7 +1,7 @@
-  hosts=("pc201.emulab.net"
-       "pc202.emulab.net"
-       "pc203.emulab.net"
-       "pc204.emulab.net")
+  hosts=("apt167.apt.emulab.net"
+       "apt191.apt.emulab.net"
+       "apt174.apt.emulab.net"
+       "apt179.apt.emulab.net")
 
 rm all-keys.txt
 for host in "${hosts[@]}"
