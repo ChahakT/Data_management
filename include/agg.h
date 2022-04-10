@@ -1,6 +1,5 @@
-#include <utility>
-
 #pragma once
+#include <utility>
 
 template <class T>
 class SmartAgg {

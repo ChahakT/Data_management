@@ -6,7 +6,7 @@
 rm all-keys.txt
 for host in "${hosts[@]}"
 do
-  ssh -o StrictHostKeyChecking=no -p 22 -l kkhare ${host} 'cat /dev/zero | ssh-keygen -q -N ""'
+  # ssh -o StrictHostKeyChecking=no -p 22 -l kkhare ${host} 'cat /dev/zero | ssh-keygen -q -N ""'
   scp -o StrictHostKeyChecking=no kkhare@${host}:~/.ssh/id_rsa.pub .
   cat id_rsa.pub >> all-keys.txt
 done

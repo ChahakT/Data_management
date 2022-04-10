@@ -25,7 +25,7 @@ include_directories(main include)
 add_library(simple_agg STATIC src/simple_agg.cpp)
 add_library(smart_agg STATIC src/smart_agg.cpp)
 add_library(simple_intersect STATIC src/simple_intersect.cpp)
-add_library(smart_intersect STATIC src/smart_intersection.cpp)
+add_library(smart_intersect STATIC src/smart_intersect.cpp)
 
 add_executable(main src/main.cpp)
 
