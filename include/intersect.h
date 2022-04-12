@@ -15,6 +15,9 @@ public:
     std::vector<T> run(T *vR, T *vS, int nR, int nS, MPI_Comm comm);
     template<class T>
     std::vector<T> run(std::vector<T> &vR, std::vector<T> &vS, MPI_Comm comm);
+    SimpleIntersect() = default;
+    SimpleIntersect(const SimpleIntersect&) = delete;
+    SimpleIntersect& operator= (const SimpleIntersect&) = delete;
 };
 
 
@@ -50,15 +53,23 @@ template<class T>
 class SmartIntersect {
 public:
     explicit SmartIntersect(std::vector<std::vector<int>> &comm_groups, std::vector<std::vector<int>> &group_dist);
-    void run(T *vR, T *vS, int nR, int nS);
-    void run(std::vector<T> &vR, std::vector<T> &vS);
+    std::vector<T> run(T *vR, T *vS, uint nR, uint nS);
+    std::vector<T> run(std::vector<T> &vR, std::vector<T> &vS);
+    SmartIntersect(const SmartIntersect&) = delete;
+    SmartIntersect& operator= (const SmartIntersect&) = delete;
+    ~SmartIntersect();
 private:
     std::vector<std::vector<int>> commGroupRanks;
     std::vector<MPI_Comm> commList;
     std::vector<IntersectHash> hashObjList;
 
-    std::unordered_map<int, std::vector<T>> partition_vector(T *v, int n, int comm_pos);
-    void exchangePartitions(std::unordered_map<int, std::vector<T>>& partition_results, int comm_pos);
+    std::unordered_map<int, std::vector<T>> partition_vector_intra(T *v, int n, int comm_pos) const;
+    std::unordered_map<int, std::vector<T>> partition_vector_inter(T *v, int n) const;
+    std::vector<T> exchange_partitions(std::unordered_map<int, std::vector<T>> &partition_results, int comm_rank, int comm_size,
+                             MPI_Comm comm);
+    std::vector<T> exchange_partitions_intra(std::unordered_map<int, std::vector<T>> &partition_results, int comm_pos);
+    std::vector<T> exchange_partitions_inter(std::unordered_map<int, std::vector<T>> &world_partitions);
+    std::vector<T> findSetIntersection(std::vector<T>& v1, std::vector<T>& v2);
 };
 
 const uint seed = 15;

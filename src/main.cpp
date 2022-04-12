@@ -86,18 +86,38 @@ void testSimpleIntersection() {
     std::vector<int> vS = returnSection(nS);
 
     std::vector<int> vec = SimpleIntersect().run(vR, vS, MPI_COMM_WORLD);
-
     std::cout << "\n[*] rank" << rank <<" output = ";
     for (auto i: vec)
         std::cout << i << " ";
-    std::cout << "\n";
+    endl(std::cout);
 }
 
 void testSmartIntersection() {
-    std::cout << "Test smart intersect\n";
-    std::vector<int> vR = {1, 2, 3, 4, 5, 6 ,7, 8};
-    std::vector<int> vS = {6, 3, 1, 10, 2, 7, 78, 8};
-    std::vector<int> result = {1, 2, 3, 7, 8};
+    const int rank = MPIHelper::get_rank();
+    const int WORLD_SIZE = MPIHelper::get_world_size();
+
+    auto returnSection = [&rank, &WORLD_SIZE] (int n) {
+        std::vector<int> v(WORLD_SIZE*n);
+        std::iota(v.begin(), v.end(), 0);
+
+        std::mt19937 g(seed);
+        std::shuffle(v.begin(), v.end(), g);
+        std::vector<int> returnV(v.begin() + rank*n, v.begin() + (rank+1)*n);
+
+        std::cout << "\n[*] rank" << rank <<" vR/vS = ";
+        for (auto i: returnV)
+            std::cout << i << " ";
+        std::cout << "\n";
+
+        return returnV;
+    };
+    // vS = [0 1 2 3 4 5 6 7 8 9 10 11] -> shuffled
+    // vR = [0 1 2 3 4 5 6 7 8] -> shuffled
+    // common = [0 1 2 3 4 5 6 7 8] -> shuffled
+
+    constexpr int nS = 4, nR = 3;
+    std::vector<int> vR = returnSection(nR);
+    std::vector<int> vS = returnSection(nS);
 
     std::vector<std::vector<int>> comm_groups;
     comm_groups.push_back({0, 1});
@@ -107,11 +127,10 @@ void testSmartIntersection() {
     dist.push_back({2, 2});
     dist.push_back({2, 2});
 
-    const int rank = MPIHelper::get_rank();
-
-    std::vector<int> my_vR = std::vector<int>(vR.begin()+2*rank, vR.begin()+2*(rank+1));
-    std::vector<int> my_vS = std::vector<int>(vS.begin()+2*rank, vS.begin()+2*(rank+1));
-    SmartIntersect<int>(comm_groups, dist).run(my_vR, my_vS);
+    std::vector<int> vec = SmartIntersect<int>(comm_groups, dist).run(vR, vS);
+    std::cout << "\n[*] rank" << rank <<" output = ";
+    for(int& x : vec) std::cout<<x<<" ";
+    endl(std::cout);
 }
 
 int main(int argc, char *argv[]) {
