@@ -85,7 +85,7 @@ void testSimpleIntersection() {
     std::vector<int> vR = returnSection(nR);
     std::vector<int> vS = returnSection(nS);
 
-    std::vector<int> vec = SimpleIntersect().run(vR, vS, MPI_COMM_WORLD);
+    std::vector<int> vec = SimpleIntersect<int>().run(vR, vS, MPI_COMM_WORLD);
     std::cout << "\n[*] rank" << rank <<" output = ";
     for (auto i: vec)
         std::cout << i << " ";

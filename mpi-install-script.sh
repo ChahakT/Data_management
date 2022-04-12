@@ -42,6 +42,14 @@ mpi-agg-benchmark() {
   mpirun -n "${node_count}" --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_agg
 }
 
+mpi-intersect-benchmark() {
+  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_intersect
+  cp /users/kkhare/git_proj/build/benchmark_intersect /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
+  mpirun -n "${node_count}" --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_intersect
+}
+
 # Check if the function exists (bash specific)
 if declare -f "$1" >/dev/null; then
   # call arguments verbatim

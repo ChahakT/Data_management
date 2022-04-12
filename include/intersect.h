@@ -9,11 +9,11 @@
 #include <iostream>
 
 typedef struct ompi_communicator_t *MPI_Comm; // typedef here to avoid incl mpi.h
+
+template<class T>
 class SimpleIntersect {
 public:
-    template<class T>
     std::vector<T> run(T *vR, T *vS, int nR, int nS, MPI_Comm comm);
-    template<class T>
     std::vector<T> run(std::vector<T> &vR, std::vector<T> &vS, MPI_Comm comm);
     SimpleIntersect() = default;
     SimpleIntersect(const SimpleIntersect&) = delete;

@@ -29,7 +29,9 @@ add_library(smart_intersect STATIC src/smart_intersect.cpp)
 
 add_executable(main src/main.cpp)
 add_executable(benchmark_agg benchmark/benchmark_agg.cpp)
+add_executable(benchmark_intersect benchmark/benchmark_intersect.cpp)
 
 target_link_libraries(main PRIVATE simple_agg smart_agg simple_intersect smart_intersect)
 target_link_libraries(benchmark_agg PRIVATE simple_agg smart_agg)
+target_link_libraries(benchmark_intersect PRIVATE simple_intersect smart_intersect)
 #add_subdirectory(tests)

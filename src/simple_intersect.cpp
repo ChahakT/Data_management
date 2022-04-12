@@ -5,12 +5,12 @@
 #include "intersect.h"
 
 template<class T>
-std::vector<T> SimpleIntersect::run(std::vector<T> &vR, std::vector<T> &vS, MPI_Comm comm) {
+std::vector<T> SimpleIntersect<T>::run(std::vector<T> &vR, std::vector<T> &vS, MPI_Comm comm) {
     return run(vR.data(), vS.data(), vR.size(), vS.size(), comm);
 }
 
 template<class T>
-std::vector<T> SimpleIntersect::run(T *vR, T *vS, const int nR, const int nS, MPI_Comm comm) {
+std::vector<T> SimpleIntersect<T>::run(T *vR, T *vS, const int nR, const int nS, MPI_Comm comm) {
     const int WORLD_SIZE = MPIHelper::get_world_size();
     const auto MPI_TYPE = GET_TYPE<T>;
 
@@ -20,11 +20,11 @@ std::vector<T> SimpleIntersect::run(T *vR, T *vS, const int nR, const int nS, MP
     std::unordered_set<T> bufHash(buf.begin(), buf.end());
     std::vector<T> result;
     for (int i = 0; i < nS; i++) {
-        if(bufHash.find(vS[i]) != bufHash.end())
+        if (bufHash.find(vS[i]) != bufHash.end())
             result.push_back(vS[i]);
     }
     return result;
 }
 
-template std::vector<int> SimpleIntersect::run(std::vector <int> &vR, std::vector <int> &vS, MPI_Comm comm);
-template std::vector<int> SimpleIntersect::run(int *vR, int *vS, const int nR, const int nS, MPI_Comm comm);
+template
+class SimpleIntersect<int>;

@@ -1,18 +1,3 @@
-
-//int sz = 100B;
-//
-//while (1) {
-//int ts= 0;
-//{
-//ClockTracker loop_break;
-//do_something(sz);
-//if ((ts = loop_brea.get_ns()) > 5s) break;
-//}
-//Stats measu("smart_agg," + std::to_string(sz))
-//for (i in 20s/ts times) { ClockTracker _(measu); do_something(sz); }
-//sz *= 2;
-//}
-
 #include <mpi.h>
 #include <unistd.h>
 #include <climits>
@@ -21,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include "mpi_helper.h"
-#include "agg.h"
+#include "intersect.h"
 #include "timing.hpp"
 
 namespace {
@@ -32,11 +17,11 @@ namespace {
     constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 10;
 
     enum class RunType {
-        SIMPLE_AGG,
-        SMART_AGG,
+        SIMPLE_INTERSECT,
+        SMART_INTERSECT,
     };
 
-    constexpr RunType currentRun = RunType::SIMPLE_AGG;
+    constexpr RunType currentRun = RunType::SMART_INTERSECT;
 }
 
 uint64_t convertToNanoSec(uint64_t x) {
@@ -45,52 +30,57 @@ uint64_t convertToNanoSec(uint64_t x) {
 }
 
 template<RunType R, class T>
-void testAgg(std::vector<int> &vec, T& obj) {
-    if constexpr(R == RunType::SIMPLE_AGG) {
-        obj->run(vec, 0, MPI_COMM_WORLD);
-    } else if constexpr(R == RunType::SMART_AGG) {
-        obj->run(vec);
+void testIntersect(std::vector<int> &vR, std::vector<int> &vS, T& obj) {
+    if constexpr(R == RunType::SIMPLE_INTERSECT) {
+        obj->run(vR, vS, MPI_COMM_WORLD);
+    } else if constexpr(R == RunType::SMART_INTERSECT) {
+        obj->run(vR, vS);
     }
     // We are not checking correctness here probably
 }
 
-std::vector<int> createVector(size_t vectorSize) {
-    int rank = MPIHelper::get_rank();
+std::vector<int> createVector(size_t vectorSize, size_t threshold) {
+    size_t rank = MPIHelper::get_rank();
     std::vector<int> vec(vectorSize);
-    std::generate(vec.begin(), vec.end(), [&rank] { return rank += 1; });
+    std::generate(vec.begin(), vec.end(), [&rank, &threshold] { return rank += threshold; });
     return vec;
 }
 
 template<RunType R>
-auto getAggObject(size_t vectorSize) {
+auto getIntersectObject() {
     std::string measureName;
-    if constexpr(R == RunType::SIMPLE_AGG) {
-        auto obj = std::make_unique<SimpleAgg<int>>(vectorSize);
-        return std::make_pair<std::string, std::unique_ptr<SimpleAgg<int>>>("simple_agg", std::move(obj));
-    } else if constexpr(R == RunType::SMART_AGG) {
-        std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
-                {0, {{1, 2}}},
-                {1, {{0, 1}}},
-        };
-        auto obj = std::make_unique<SmartAgg<int>>(stepCommInstructions);
-        return std::make_pair<std::string, std::unique_ptr<SmartAgg<int>>>("smart_agg", std::move(obj));
+    if constexpr(R == RunType::SIMPLE_INTERSECT) {
+        auto obj = std::make_unique<SimpleIntersect<int>>();
+        return std::make_pair<std::string, std::unique_ptr<SimpleIntersect<int>>>("simple_intersect", std::move(obj));
+    } else if constexpr(R == RunType::SMART_INTERSECT) {
+        std::vector<std::vector<int>> comm_groups;
+        comm_groups.push_back({0, 1});
+        comm_groups.push_back({2, 3});
+
+        std::vector<std::vector<int>> dist;
+        dist.push_back({2, 2});
+        dist.push_back({2, 2});
+
+        auto obj = std::make_unique<SmartIntersect<int>>(comm_groups, dist);
+        return std::make_pair<std::string, std::unique_ptr<SmartIntersect<int>>>("smart_intersect", std::move(obj));
     } else
         return std::nullopt;
 }
 
 template<RunType R>
-void runTestAgg() {
+void runTestIntersect() {
     int rank = MPIHelper::get_rank();
     size_t runningSize = initialVectorSize;
+    auto[measureName, obj] = getIntersectObject<R>();
     while (true) {
         uint64_t ts = 0;
-        std::vector<int> vec = createVector(runningSize);
-        auto[measureName, obj] = getAggObject<R>(runningSize);
+        std::vector<int> vR = createVector(runningSize/2, runningSize/2);
+        std::vector<int> vS = createVector(runningSize, 0);
         {
             Stats dummy;
             MPI_Barrier(MPI_COMM_WORLD);
             ClockTracker loopBreak(dummy);
-            testAgg<R>(vec, obj);
+            testIntersect<R>(vR, vS, obj);
             ts = loopBreak.get_ns();
             if (ts > convertToNanoSec(MAX_TIME_LIMIT_RUN_SEC)) break;
         }
@@ -105,7 +95,7 @@ void runTestAgg() {
             for (uint i = 0; i < loopCount; i++) {
                 MPI_Barrier(MPI_COMM_WORLD);
                 ClockTracker _(measurement);
-                testAgg<R>(vec, obj);
+                testIntersect<R>(vR, vS, obj);
             }
         }
         runningSize = (size_t) ((double) runningSize * 1.5);
@@ -130,6 +120,6 @@ int main(int argc, char *argv[]) {
     MPIHelper::init(MPI_COMM_WORLD);
     getHostnameDetails(argc, argv);
 
-    runTestAgg<currentRun>();
+    runTestIntersect<currentRun>();
     MPI_Finalize();
 }
