@@ -44,6 +44,9 @@ mpi-agg-benchmark() {
 
 mpi-intersect-benchmark() {
   rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_intersect
+  cd /users/kkhare/git_proj/build/
+  make -j
+  cd /users/kkhare/git_proj/
   cp /users/kkhare/git_proj/build/benchmark_intersect /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
   cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')

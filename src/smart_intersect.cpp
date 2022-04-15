@@ -145,8 +145,11 @@ template<class T>
 std::vector<T> SmartIntersect<T>::findSetIntersection(std::vector<T> &v1, std::vector<T> &v2) {
     std::unordered_set<T> m(v1.begin(), v1.end());
     std::vector<T> final_elems;
-    std::copy_if(v2.begin(), v2.end(), std::back_inserter(final_elems),
-                 [&m](T &elem) { return std::find(m.begin(), m.end(), elem) != m.end(); });
+
+    for (auto e: v2) {
+        if (m.find(e) != m.end())
+            final_elems.push_back(e);
+    }
 
     return final_elems;
 }
