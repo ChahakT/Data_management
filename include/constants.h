@@ -1,0 +1,1 @@
+const uint seed = 15;

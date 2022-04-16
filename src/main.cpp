@@ -5,18 +5,21 @@
 #include <numeric>
 #include <random>
 #include <mpi.h>
+#include <join.h>
 #include "mpi_helper.h"
 #include "agg.h"
 #include "intersect.h"
+#include "constants.h"
 
 enum class RunType {
     SIMPLE_AGG,
     SMART_AGG,
     SIMPLE_INTERSECT,
     SMART_INTERSECT,
+    SIMPLE_JOIN
 };
 
-const RunType currentRun = RunType::SMART_INTERSECT;
+const RunType currentRun = RunType::SIMPLE_JOIN;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -62,15 +65,15 @@ void testSimpleIntersection() {
     const int rank = MPIHelper::get_rank();
     const int WORLD_SIZE = MPIHelper::get_world_size();
 
-    auto returnSection = [&rank, &WORLD_SIZE] (int n) {
-        std::vector<int> v(WORLD_SIZE*n);
+    auto returnSection = [&rank, &WORLD_SIZE](int n) {
+        std::vector<int> v(WORLD_SIZE * n);
         std::iota(v.begin(), v.end(), 0);
 
         std::mt19937 g(seed);
         std::shuffle(v.begin(), v.end(), g);
-        std::vector<int> returnV(v.begin() + rank*n, v.begin() + (rank+1)*n);
+        std::vector<int> returnV(v.begin() + rank * n, v.begin() + (rank + 1) * n);
 
-        std::cout << "\n[*] rank" << rank <<" vR/vS = ";
+        std::cout << "\n[*] rank" << rank << " vR/vS = ";
         for (auto i: returnV)
             std::cout << i << " ";
         std::cout << "\n";
@@ -86,7 +89,7 @@ void testSimpleIntersection() {
     std::vector<int> vS = returnSection(nS);
 
     std::vector<int> vec = SimpleIntersect<int>().run(vR, vS, MPI_COMM_WORLD);
-    std::cout << "\n[*] rank" << rank <<" output = ";
+    std::cout << "\n[*] rank" << rank << " output = ";
     for (auto i: vec)
         std::cout << i << " ";
     endl(std::cout);
@@ -96,15 +99,15 @@ void testSmartIntersection() {
     const int rank = MPIHelper::get_rank();
     const int WORLD_SIZE = MPIHelper::get_world_size();
 
-    auto returnSection = [&rank, &WORLD_SIZE] (int n) {
-        std::vector<int> v(WORLD_SIZE*n);
+    auto returnSection = [&rank, &WORLD_SIZE](int n) {
+        std::vector<int> v(WORLD_SIZE * n);
         std::iota(v.begin(), v.end(), 0);
 
         std::mt19937 g(seed);
         std::shuffle(v.begin(), v.end(), g);
-        std::vector<int> returnV(v.begin() + rank*n, v.begin() + (rank+1)*n);
+        std::vector<int> returnV(v.begin() + rank * n, v.begin() + (rank + 1) * n);
 
-        std::cout << "\n[*] rank" << rank <<" vR/vS = ";
+        std::cout << "\n[*] rank" << rank << " vR/vS = ";
         for (auto i: returnV)
             std::cout << i << " ";
         std::cout << "\n";
@@ -128,8 +131,40 @@ void testSmartIntersection() {
     dist.push_back({2, 2});
 
     std::vector<int> vec = SmartIntersect<int>(comm_groups, dist).run(vR, vS);
-    std::cout << "\n[*] rank" << rank <<" output = ";
-    for(int& x : vec) std::cout<<x<<" ";
+    std::cout << "\n[*] rank" << rank << " output = ";
+    for (int &x: vec) std::cout << x << " ";
+    endl(std::cout);
+}
+
+void testSimpleJoin() {
+    const int rank = MPIHelper::get_rank();
+    const int WORLD_SIZE = MPIHelper::get_world_size();
+
+    auto returnSection = [&rank, &WORLD_SIZE](int n) {
+        std::vector<int> v(WORLD_SIZE * n);
+        std::iota(v.begin(), v.begin() + v.size() / 2, 0);
+        std::iota(v.begin() + v.size() / 2, v.end(), 0);
+
+        std::mt19937 g(seed);
+        std::shuffle(v.begin(), v.end(), g);
+        std::vector<int> returnV(v.begin() + rank * n, v.begin() + (rank + 1) * n);
+
+        std::cout << "\n[*]Inital Values -> rank" << rank << " vR/vS = ";
+        for (auto i: returnV)
+            std::cout << i << " ";
+        std::cout << "\n";
+
+        return returnV;
+    };
+
+    constexpr int nS = 4, nR = 3;
+    std::vector<int> vR = returnSection(nR);
+    std::vector<int> vS = returnSection(nS);
+
+    std::vector<int> vec = SimpleJoin<int>().run(vR, vS, MPI_COMM_WORLD);
+    std::cout << "\nFinal OP -> [*] rank" << rank << " output = ";
+    for (auto i: vec)
+        std::cout << i << " ";
     endl(std::cout);
 }
 
@@ -143,6 +178,7 @@ int main(int argc, char *argv[]) {
             {RunType::SMART_AGG,        testSmartAggregation},
             {RunType::SIMPLE_INTERSECT, testSimpleIntersection},
             {RunType::SMART_INTERSECT,  testSmartIntersection},
+            {RunType::SIMPLE_JOIN,      testSimpleJoin},
     };
 
     functionMap[currentRun]();

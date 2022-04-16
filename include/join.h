@@ -71,5 +71,3 @@ private:
     std::vector<T> exchange_partitions_inter(std::unordered_map<int, std::vector<T>> &world_partitions);
     std::vector<T> findSetIntersection(std::vector<T>& v1, std::vector<T>& v2);
 };
-
-const uint seed = 15;
