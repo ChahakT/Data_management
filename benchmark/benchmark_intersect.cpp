@@ -96,6 +96,9 @@ void runTestIntersect() {
                 MPI_Barrier(MPI_COMM_WORLD);
                 ClockTracker _(measurement);
                 testIntersect<R>(vR, vS, obj);
+                if (loopCount < 20) {
+                    std::cerr << i << "/" << loopCount << " " << _.get_ns() << "\n";
+                }
             }
         }
         runningSize = (size_t) ((double) runningSize * 1.5);
