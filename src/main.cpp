@@ -16,10 +16,11 @@ enum class RunType {
     SMART_AGG,
     SIMPLE_INTERSECT,
     SMART_INTERSECT,
-    SIMPLE_JOIN
+    SIMPLE_JOIN,
+    SMART_JOIN,
 };
 
-const RunType currentRun = RunType::SIMPLE_JOIN;
+const RunType currentRun = RunType::SMART_JOIN;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -168,6 +169,47 @@ void testSimpleJoin() {
     endl(std::cout);
 }
 
+void testSmartJoin() {
+    const int rank = MPIHelper::get_rank();
+    const int WORLD_SIZE = MPIHelper::get_world_size();
+
+    auto returnSection = [&rank, &WORLD_SIZE](int n) {
+        std::vector<int> v(WORLD_SIZE * n);
+        std::iota(v.begin(), v.end(), 0);
+
+        std::mt19937 g(seed);
+        std::shuffle(v.begin(), v.end(), g);
+        std::vector<int> returnV(v.begin() + rank * n, v.begin() + (rank + 1) * n);
+
+        std::cout << "\n[*] rank" << rank << " vR/vS = ";
+        for (auto i: returnV)
+            std::cout << i << " ";
+        std::cout << "\n";
+
+        return returnV;
+    };
+    // vS = [0 1 2 3 4 5 6 7 8 9 10 11] -> shuffled
+    // vR = [0 1 2 3 4 5 6 7 8] -> shuffled
+    // common = [0 1 2 3 4 5 6 7 8] -> shuffled
+
+    constexpr int nS = 4, nR = 3;
+    std::vector<int> vR = returnSection(nR);
+    std::vector<int> vS = returnSection(nS);
+
+    std::vector<std::vector<int>> comm_groups;
+    comm_groups.push_back({0, 1});
+    comm_groups.push_back({2, 3});
+
+    std::vector<std::vector<int>> dist;
+    dist.push_back({2, 2});
+    dist.push_back({2, 2});
+
+    std::vector<int> vec = SmartJoin<int>(comm_groups, dist).run(vR, vS);
+    std::cout << "\n[*] rank" << rank << " output = ";
+    for (int &x: vec) std::cout << x << " ";
+    endl(std::cout);
+}
+
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
     MPIHelper::init(MPI_COMM_WORLD);
@@ -179,6 +221,7 @@ int main(int argc, char *argv[]) {
             {RunType::SIMPLE_INTERSECT, testSimpleIntersection},
             {RunType::SMART_INTERSECT,  testSmartIntersection},
             {RunType::SIMPLE_JOIN,      testSimpleJoin},
+            {RunType::SMART_JOIN,       testSmartJoin},
     };
 
     functionMap[currentRun]();
