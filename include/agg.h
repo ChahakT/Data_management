@@ -23,3 +23,19 @@ public:
     void run(T* v, size_t n, int root, MPI_Comm comm);
     void run(std::vector<T> &vec, int root, MPI_Comm comm);
 };
+
+template <class T>
+class SmartAggV2 {
+    const double beta;
+    SmartAggV2(const SmartAggV2&) = delete;
+    SmartAggV2& operator= (const SmartAggV2&) = delete;
+public:
+    double get_fraction() const {
+        return 2.0/(3 * beta + 2);
+    }
+    explicit SmartAggV2(double b): beta(b) { ; }
+    void run(T* v, size_t n, int root, MPI_Comm comm);
+    void run(std::vector<T> &vec, int root = 0) {
+        run(vec.data(), vec.size(), root, MPI_COMM_WORLD);
+    }
+};

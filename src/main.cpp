@@ -14,13 +14,15 @@
 enum class RunType {
     SIMPLE_AGG,
     SMART_AGG,
+    SMART_AGG_V2,
     SIMPLE_INTERSECT,
     SMART_INTERSECT,
     SIMPLE_JOIN,
     SMART_JOIN,
 };
 
-const RunType currentRun = RunType::SMART_JOIN;
+const RunType currentRun = RunType::SMART_AGG_V2
+        ;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -45,6 +47,7 @@ void testSimpleAggregation() {
     }
 }
 
+template <int V = 1>
 void testSmartAggregation() {
     const int rank = MPIHelper::get_rank();
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
@@ -53,7 +56,11 @@ void testSmartAggregation() {
             {0, {{2, 1}}},
             {1, {{0, 2}}},
     };
-    SmartAgg<int>(stepCommInstructions).run(vec);
+    if constexpr (V == 1)
+        SmartAgg<int>(stepCommInstructions).run(vec);
+    else
+        SmartAggV2<int>(2.0).run(vec); // TODO: put beta correctly
+
     if (rank == 0) {
         std::cout << "\n[*] output = ";
         for (auto i: vec)
@@ -217,7 +224,8 @@ int main(int argc, char *argv[]) {
 
     std::map<RunType, std::function<void()>> functionMap = {
             {RunType::SIMPLE_AGG,       testSimpleAggregation},
-            {RunType::SMART_AGG,        testSmartAggregation},
+            {RunType::SMART_AGG,     [&](){testSmartAggregation<1>();}},
+            {RunType::SMART_AGG_V2,  [&](){testSmartAggregation<2>();}},
             {RunType::SIMPLE_INTERSECT, testSimpleIntersection},
             {RunType::SMART_INTERSECT,  testSmartIntersection},
             {RunType::SIMPLE_JOIN,      testSimpleJoin},
