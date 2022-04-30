@@ -23,6 +23,7 @@
 #include "mpi_helper.h"
 #include "agg.h"
 #include "timing.hpp"
+#include "constants.h"
 
 namespace {
     constexpr size_t initialVectorSize = 1024;
@@ -31,12 +32,6 @@ namespace {
     constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 5;
     constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 10;
 
-    enum class RunType {
-        SIMPLE_AGG,
-        SMART_AGG,
-    };
-
-    constexpr RunType currentRun = RunType::SIMPLE_AGG;
 }
 
 uint64_t convertToNanoSec(uint64_t x) {
@@ -48,7 +43,7 @@ template<RunType R, class T>
 void testAgg(std::vector<int> &vec, T& obj) {
     if constexpr(R == RunType::SIMPLE_AGG) {
         obj->run(vec, 0, MPI_COMM_WORLD);
-    } else if constexpr(R == RunType::SMART_AGG) {
+    } else if constexpr(R == RunType::SMART_AGG || R == RunType::SMART_AGG_V2) {
         obj->run(vec);
     }
     // We are not checking correctness here probably
@@ -74,6 +69,9 @@ auto getAggObject(size_t vectorSize) {
         };
         auto obj = std::make_unique<SmartAgg<int>>(stepCommInstructions);
         return std::make_pair<std::string, std::unique_ptr<SmartAgg<int>>>("smart_agg", std::move(obj));
+    } else if constexpr (R == RunType::SMART_AGG_V2) {
+        auto obj = std::make_unique<SmartAggV2<int>>(BETA);
+        return std::make_pair<std::string, std::unique_ptr<SmartAggV2<int>>>("smart_agg_v2", std::move(obj));
     } else
         return std::nullopt;
 }

@@ -11,18 +11,7 @@
 #include "intersect.h"
 #include "constants.h"
 
-enum class RunType {
-    SIMPLE_AGG,
-    SMART_AGG,
-    SMART_AGG_V2,
-    SIMPLE_INTERSECT,
-    SMART_INTERSECT,
-    SIMPLE_JOIN,
-    SMART_JOIN,
-};
 
-const RunType currentRun = RunType::SMART_AGG_V2
-        ;
 
 void getHostnameDetails(int argc, char *argv[]) {
     char hostname[HOST_NAME_MAX + 1];
@@ -59,7 +48,7 @@ void testSmartAggregation() {
     if constexpr (V == 1)
         SmartAgg<int>(stepCommInstructions).run(vec);
     else
-        SmartAggV2<int>(2.0).run(vec); // TODO: put beta correctly
+        SmartAggV2<int>(BETA).run(vec);
 
     if (rank == 0) {
         std::cout << "\n[*] output = ";

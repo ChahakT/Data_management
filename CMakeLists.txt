@@ -21,7 +21,8 @@ add_compile_options(
 )
 
 include_directories(main include)
-
+ADD_DEFINITIONS(-D_RUNTYPE=${_RUNTYPE})
+ADD_DEFINITIONS(-D_BETA=${_BETA})
 add_library(simple_agg STATIC src/simple_agg.cpp)
 add_library(smart_agg STATIC src/smart_agg.cpp)
 add_library(smart_agg_v2 STATIC src/smart_agg_v2.cpp)
