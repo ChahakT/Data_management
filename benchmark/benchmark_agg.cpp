@@ -42,9 +42,11 @@ uint64_t convertToNanoSec(uint64_t x) {
 template<RunType R, class T>
 void testAgg(std::vector<int> &vec, T& obj) {
     if constexpr(R == RunType::SIMPLE_AGG) {
-        obj->run(vec, 0, MPI_COMM_WORLD);
-    } else if constexpr(R == RunType::SMART_AGG || R == RunType::SMART_AGG_V2) {
+        obj->run(vec, current_root, MPI_COMM_WORLD);
+    } else if constexpr(R == RunType::SMART_AGG) {
         obj->run(vec);
+    } else if constexpr(R == RunType::SMART_AGG_V2) {
+      obj->run(vec, current_root);
     }
     // We are not checking correctness here probably
 }

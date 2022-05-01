@@ -21,3 +21,4 @@ enum class RunType {
 
 constexpr RunType currentRun = RunType:: _RUNTYPE;
 constexpr double BETA = _BETA;
+constexpr int current_root = 3;
