@@ -65,7 +65,7 @@ auto getAggObject(size_t vectorSize) {
         return std::make_pair<std::string, std::unique_ptr<SimpleAgg<int>>>("simple_agg", std::move(obj));
     } else if constexpr(R == RunType::SMART_AGG) {
         std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
-                {0, {{1, 2}}},
+                {0, {{1, 2, 3}}},
                 {1, {{0, 1}}},
         };
         auto obj = std::make_unique<SmartAgg<int>>(stepCommInstructions);

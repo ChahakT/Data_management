@@ -42,7 +42,7 @@ void testSmartAggregation() {
     std::vector<int> vec = {1 + rank, 2, 3 + rank};
     // [1 2 3] [2 2 4] [3 2 5] = [6 6 12]
     std::map<int, std::vector<std::vector<int>>> stepCommInstructions = {
-            {0, {{2, 1}}},
+            {0, {{2, 1, 3}}},
             {1, {{0, 2}}},
     };
     if constexpr (V == 1)
