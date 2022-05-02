@@ -125,6 +125,10 @@ void getHostnameDetails(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+    if constexpr (!(currentRun == RunType::SIMPLE_AGG
+              || currentRun == RunType::SMART_AGG
+              || currentRun == RunType::SMART_AGG_V2))
+      return -1;
     MPI_Init(&argc, &argv);
     MPIHelper::init(MPI_COMM_WORLD);
     getHostnameDetails(argc, argv);

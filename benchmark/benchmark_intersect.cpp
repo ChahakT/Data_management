@@ -24,7 +24,7 @@ uint64_t convertToNanoSec(uint64_t x) {
 }
 
 template<RunType R, class T>
-void testIntersect(std::vector<int> &vR, std::vector<int> &vS, T& obj) {
+void testIntersect(const std::vector<int> &vR, const std::vector<int> &vS, T&& obj) {
     if constexpr(R == RunType::SIMPLE_INTERSECT) {
         obj->run(vR, vS, MPI_COMM_WORLD);
     } else if constexpr(R == RunType::SMART_INTERSECT) {
@@ -58,7 +58,7 @@ auto getIntersectObject() {
         auto obj = std::make_unique<SmartIntersect<int>>(comm_groups, dist);
         return std::make_pair<std::string, std::unique_ptr<SmartIntersect<int>>>("smart_intersect", std::move(obj));
     } else
-        return std::nullopt;
+        return std::make_pair("", std::nullopt);
 }
 
 template<RunType R>
@@ -81,7 +81,7 @@ void runTestIntersect() {
         {
             Stats dummy;
             ClockTracker loopBreak(dummy);
-            Stats measurement(measureName + "," + std::to_string(runningSize), rank == 0);
+            Stats measurement(std::string(measureName) + "," + std::to_string(runningSize), rank == 0);
             uint64_t loopCount = (rank == 0) ? (uint64_t) convertToNanoSec(MAX_TIME_LIMIT_ITER_SEC) / ts : 0;
             loopCount = std::max<uint64_t>(loopCount, 5);
             loopCount = std::min<uint64_t>(loopCount, 1e4);
@@ -103,6 +103,7 @@ template<RunType R>
 void runTestIntersectV2() {
   int rank = MPIHelper::get_rank();
   auto[measureName, obj] = getIntersectObject<R>();
+  if(measureName == "") return;
   for(uint factor = 1; factor <= 1024; factor *= 2) {
     uint64_t ts = 0;
     const auto vR = createVector(maxVectorSize / factor, maxVectorSize - maxVectorSize / factor);
@@ -143,6 +144,9 @@ void getHostnameDetails(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+  if constexpr (!(currentRun == RunType::SMART_INTERSECT
+                  || currentRun == RunType::SIMPLE_INTERSECT))
+                  return -1;
     MPI_Init(&argc, &argv);
     MPIHelper::init(MPI_COMM_WORLD);
     getHostnameDetails(argc, argv);
