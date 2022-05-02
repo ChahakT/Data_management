@@ -70,11 +70,10 @@ auto getAggObject(size_t vectorSize) {
         };
         auto obj = std::make_unique<SmartAgg<int>>(stepCommInstructions);
         return std::make_pair<std::string, std::unique_ptr<SmartAgg<int>>>("smart_agg", std::move(obj));
-    } else if constexpr (R == RunType::SMART_AGG_V2) {
+    } else {
         auto obj = std::make_unique<SmartAggV2<int>>(BETA);
         return std::make_pair<std::string, std::unique_ptr<SmartAggV2<int>>>("smart_agg_v2", std::move(obj));
-    } else
-        return std::nullopt;
+    }
 }
 
 template<RunType R>
