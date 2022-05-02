@@ -36,7 +36,7 @@ public:
             std::cout << stats.front() << "\n";
         } else {
             const long double vecMedian = (double) median(stats) / 1e3;
-            std::cout << vecMedian << "\n";
+            std::cout << std::fixed << vecMedian << "\n";
         }
 #endif
     }
