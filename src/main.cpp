@@ -20,7 +20,7 @@ void getHostnameDetails(int argc, char *argv[]) {
     std::cerr << hostname << " " << argc << " -> ";
     for (int i = 0; i < argc; i++)
         std::cerr << argv[i] << " | ";
-    std::cout << "\n";
+    std::cerr << "\n";
 }
 
 void testSimpleAggregation() {
