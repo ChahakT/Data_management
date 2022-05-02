@@ -46,6 +46,21 @@ template<class T>
 void SmartAgg<T>::run(T *v, const size_t n) {
     const auto MPI_TYPE = GET_TYPE<T>;
     //const int rank = MPIHelper::get_rank();
+    const int max_custom_comm_sz = [&]() {
+        int max_custom_comm_sz = -1;
+        for (auto const&[step, stepCommGroup]: stepCommGroups) {
+            for (auto customComm: stepCommGroup) {
+                if (customComm == MPI_COMM_NULL) continue;
+                int customCommSize;
+                MPI_Comm_size(customComm, &customCommSize);
+                max_custom_comm_sz = std::max(max_custom_comm_sz, customCommSize);
+            }
+        }
+        return max_custom_comm_sz;
+    }();
+    std::vector<std::unique_ptr<T[]>> buf(max_custom_comm_sz-1);
+    for (auto& i: buf) { i = std::make_unique<T[]>(n); }
+
 
     for(auto const& [step, stepCommGroup] : stepCommGroups) {
         for(auto customComm: stepCommGroup) {
@@ -55,8 +70,6 @@ void SmartAgg<T>::run(T *v, const size_t n) {
             MPI_Comm_size(customComm, &customCommSize);
             if(customCommRank == 0) {
                 MPI_Request reqs[100];
-                std::vector<std::unique_ptr<T[]>> buf(customCommSize-1);
-                for (auto& i: buf) { i = std::make_unique<T[]>(n); }
                 for (int i = 1; i < customCommSize; i++) {
                     auto& bufJ = buf[i - 1];
                     MPI_Irecv(bufJ.get(), n, MPI_TYPE, i, step, customComm, reqs + i - 1);
