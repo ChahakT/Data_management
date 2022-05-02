@@ -15,7 +15,7 @@ public:
 
 template <class T>
 class SimpleAgg {
-    std::vector<std::unique_ptr<T[]>> buf;
+//    std::vector<std::unique_ptr<T[]>> buf;
 public:
     explicit SimpleAgg(size_t n);
     SimpleAgg(const SimpleAgg&) = delete;

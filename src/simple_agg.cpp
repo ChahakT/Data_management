@@ -10,9 +10,6 @@ namespace {
 template<class T>
 SimpleAgg<T>::SimpleAgg(size_t n) {
     const int WORLD_SIZE = MPIHelper::get_world_size();
-    std::vector<std::unique_ptr<T[]>> buf_(WORLD_SIZE-1);
-    for (auto& i: buf_) { i = std::make_unique<T[]>(n); i[0] = 999; }
-    buf = std::move(buf_);
 }
 
 template<class T>
@@ -28,6 +25,9 @@ void SimpleAgg<T>::run(T *v, const size_t n, const int root, MPI_Comm comm) {
 
     MPI_Request reqs[100];
     if (rank == root) {
+        std::vector<std::unique_ptr<T[]>> buf(WORLD_SIZE-1);
+        for (auto& i: buf) { i = std::make_unique<T[]>(n); }
+
         int counter = 0;
         for (int i = 0; i < WORLD_SIZE; i++) {
             if(i == root) continue;
