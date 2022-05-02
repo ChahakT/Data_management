@@ -31,7 +31,6 @@ namespace {
             std::min<size_t>(std::numeric_limits<int>::max(), std::numeric_limits<size_t>::max()) / 4;
     constexpr uint64_t MAX_TIME_LIMIT_RUN_SEC = 5;
     constexpr uint64_t MAX_TIME_LIMIT_ITER_SEC = 10;
-
 }
 
 uint64_t convertToNanoSec(uint64_t x) {
