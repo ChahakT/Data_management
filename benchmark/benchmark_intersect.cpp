@@ -24,7 +24,7 @@ uint64_t convertToNanoSec(uint64_t x) {
 }
 
 template<RunType R, class T>
-void testIntersect(const std::vector<int> &vR, const std::vector<int> &vS, T&& obj) {
+void testIntersect(std::vector<int> &vR, std::vector<int> &vS, T&& obj) {
     if constexpr(R == RunType::SIMPLE_INTERSECT) {
         obj->run(vR, vS, MPI_COMM_WORLD);
     } else if constexpr(R == RunType::SMART_INTERSECT) {
@@ -68,8 +68,8 @@ void runTestIntersect() {
     auto[measureName, obj] = getIntersectObject<R>();
     while (true) {
         uint64_t ts = 0;
-        const auto vR = createVector(runningSize/2, runningSize/2);
-        const auto vS = createVector(runningSize, 0);
+        auto vR = createVector(runningSize/2, runningSize/2);
+        auto vS = createVector(runningSize, 0);
         {
             Stats dummy;
             MPI_Barrier(MPI_COMM_WORLD);
