@@ -117,16 +117,15 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
         int idx = -100;
         MPI_Status stat;
         assert(MPI_SUCCESS == MPI_Waitany(comm_size, recv_reqs.data(), &idx, &stat));
-	if (idx == MPI_UNDEFINED) {
-		continue;
+	if (idx != MPI_UNDEFINED) {
+		assert(idx >= 0);
+		int data_count;
+		MPI_Get_count(&stat, MPI_TYPE, &data_count);
+		assert(data_count == partition_sizes[idx]);
+		auto& buf = bufs[idx];
+		for (int j = 0; j < data_count; j++)
+		    all_data[all_data_counter++] = buf[j];
 	}
-        assert(idx >= 0);
-        int data_count;
-        MPI_Get_count(&stat, MPI_TYPE, &data_count);
-        assert(data_count == partition_sizes[idx]);
-        auto& buf = bufs[idx];
-        for (int j = 0; j < data_count; j++)
-            all_data[all_data_counter++] = buf[j];
     } while (--k);
 
 
@@ -185,6 +184,9 @@ std::vector<T> SmartIntersect<T>::run(T *vR, T *vS, const uint nR, const uint nS
 
     auto ret = findSetIntersection(all_dataR, all_dataS);
     MPI_Waitall(pending_sends.size(), pending_sends.data(), MPI_STATUSES_IGNORE);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    std::cerr << "[" << rank << "] is done\n";
     return ret;
 }
 
