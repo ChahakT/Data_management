@@ -22,35 +22,32 @@ cmake-install() {
 
 mpi-copy() {
   echo "WARNING: No need to mpi-copy anymore, directly run mpi-run/mpi-benchmark"
-  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
-  cp /users/kkhare/git_proj/build/main /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/build/main /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
 }
 
 mpi-run() {
-  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/main
-  cp /users/kkhare/git_proj/build/main /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
-  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  rm -rf /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/main
+  cp /users/kkhare/git_proj/build/main /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
-  mpirun -n "${node_count}" --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile --mca btl_base_warn_component_unused 0 /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/main 
+  mpirun -n "${node_count}" --hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/hostfile --mca btl_base_warn_component_unused 0 /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/main 
 }
 
 mpi-agg-benchmark() {
-  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_agg
-  cp /users/kkhare/git_proj/build/benchmark_agg /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
-  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  rm -rf /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/benchmark_agg
+  cp /users/kkhare/git_proj/build/benchmark_agg /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
-  mpirun -n "${node_count}" --mca btl_base_warn_component_unused 0 --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_agg
+  mpirun -n "${node_count}" --mca btl_base_warn_component_unused 0 --hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/benchmark_agg
 }
 
 mpi-intersect-benchmark() {
-  rm -rf /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_intersect
-  cd /users/kkhare/git_proj/build/
-  make -j
-  cd /users/kkhare/git_proj/
-  cp /users/kkhare/git_proj/build/benchmark_intersect /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
-  cp /users/kkhare/git_proj/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp
+  rm -rf /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/benchmark_intersect
+  cp /users/kkhare/git_proj/build/benchmark_intersect /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
+  cp /users/kkhare/git_proj/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp
   node_count=$(wc -l /users/kkhare/git_proj/hostfile | sed 's/[^0-9]*//g')
-  mpirun -n "${node_count}" --mca btl_base_warn_component_unused 0 --hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/hostfile /proj/advosuwmadison-PG0/ds/groups/group4/dm/tmp/benchmark_intersect
+  mpirun -n "${node_count}" --mca btl_base_warn_component_unused 0 --hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/hostfile /proj/AdvOSUWMadison/ds/groups/group4/dm/tmp/benchmark_intersect
 }
 
 # Check if the function exists (bash specific)
