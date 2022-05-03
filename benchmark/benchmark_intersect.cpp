@@ -104,7 +104,7 @@ void runTestIntersectV2() {
   int rank = MPIHelper::get_rank();
   auto[measureName, obj] = getIntersectObject<R>();
   if(measureName == "") return;
-  for(uint factor = 1; factor <= 1024; factor *= 2) {
+  for(int factor: {16, 32, 64, 128, 256, 512, 1024, 2048, 4096}) {
     uint64_t ts = 0;
     const auto vR = createVector(maxVectorSize / factor, maxVectorSize - maxVectorSize / factor);
     const auto vS = createVector(maxVectorSize, 0);
