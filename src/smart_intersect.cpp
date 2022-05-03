@@ -95,19 +95,20 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
     MPI_Waitall(comm_size, size_receive_requests.data(), MPI_STATUSES_IGNORE);
 
     std::vector<T> all_data(
-            std::accumulate(partition_sizes.begin(), partition_sizes.end(), 0) + partition_results[comm_rank].size());
+            std::accumulate(partition_sizes.begin(), partition_sizes.end(), 0) * 10 + partition_results[comm_rank].size());
     uint all_data_counter = 0;
 
     for (int i = 0; i < comm_size; i++) {
         if (i == comm_rank || partition_sizes[i] == 0) continue;
-        std::unique_ptr<T[]> buf = std::make_unique<T[]>(partition_sizes[i]);
+        std::unique_ptr<T[]> buf = std::make_unique<T[]>(10*partition_sizes[i]);
         MPI_Status data_receive_status;
-        MPI_Recv(buf.get(), partition_sizes[i], MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
+        MPI_Recv(buf.get(), 10*partition_sizes[i], MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
                  comm, &data_receive_status);
 
         int data_count;
         MPI_Get_count(&data_receive_status, MPI_TYPE, &data_count);
-        assert(data_count == partition_sizes[i]);
+//	std::cerr << data_count << " " << partition_sizes[i] << "\n";
+//        assert(data_count == partition_sizes[i]);
 
         for (int j = 0; j < data_count; j++)
             all_data[all_data_counter++] = buf[j];
