@@ -96,6 +96,7 @@ void runTestIntersect() {
         if (runningSize > maxVectorSize) break;
     }
     std::cerr << "Completed tests rank " << rank << std::endl;
+    MPI_Barrier(MPI_COMM_WORLD);
 //    MPI_Abort(MPI_COMM_WORLD, 0); // Change this hack if possible, not at all good
 }
 
