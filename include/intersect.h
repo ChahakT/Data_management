@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <stdexcept> // std::logic_error
 #include <iostream>
+#include <mpi.h>
 
 typedef struct ompi_communicator_t *MPI_Comm; // typedef here to avoid incl mpi.h
 

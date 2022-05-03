@@ -99,7 +99,7 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
     uint all_data_counter = 0;
 
     std::vector<MPI_Request> recv_reqs(comm_size, MPI_REQUEST_NULL);
-    int recv_reqs_i=0;
+//    int recv_reqs_i=0;
     std::vector<std::unique_ptr<T[]>> bufs(comm_size);
     for (int i = 0; i < comm_size; i++) {
         if (i == comm_rank || partition_sizes[i] == 0) continue;
@@ -112,11 +112,14 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
     for (auto &x: partition_results[comm_rank])
         all_data[all_data_counter++] = x;
 
-    int k = recv_reqs_i;
+    int k = comm_size;
     do {
         int idx = -100;
         MPI_Status stat;
-        assert(MPI_SUCCESS == MPI_Waitany(k, recv_reqs.data(), &idx, &stat));
+        assert(MPI_SUCCESS == MPI_Waitany(comm_size, recv_reqs.data(), &idx, &stat));
+	if (idx == MPI_UNDEFINED) {
+		continue;
+	}
         assert(idx >= 0);
         int data_count;
         MPI_Get_count(&stat, MPI_TYPE, &data_count);
