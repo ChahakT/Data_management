@@ -174,10 +174,14 @@ template<class T>
 std::vector<T> SmartIntersect<T>::run(T *vR, T *vS, const uint nR, const uint nS) {
     pending_sends.clear();
     std::vector<T> all_dataS;
+    bool once = false;
     for (uint i = 0; i < commList.size(); i++) {
         if (commList[i] == MPI_COMM_NULL) continue;
         std::unordered_map<int, std::vector<T>> partition_results = partition_vector_intra(vS, nS, i);
         all_dataS = exchange_partitions_intra(partition_results, i);
+        if (once)
+            throw std::runtime_error("for loop'd more than once");
+        once = true;
     }
 
     std::unordered_map<int, std::vector<T>> world_partition_results = partition_vector_inter(vR, nR);
