@@ -98,7 +98,7 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
             std::accumulate(partition_sizes.begin(), partition_sizes.end(), 0) + partition_results[comm_rank].size());
     uint all_data_counter = 0;
 
-    std::vector<MPI_Request> recv_reqs(comm_size);
+    std::vector<MPI_Request> recv_reqs(comm_size, MPI_REQUEST_NULL);
     int recv_reqs_i=0;
     std::vector<std::unique_ptr<T[]>> bufs(comm_size);
     for (int i = 0; i < comm_size; i++) {
@@ -107,14 +107,7 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
         buf = std::make_unique<T[]>(partition_sizes[i]);
 
         MPI_Irecv(buf.get(), partition_sizes[i], MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
-                 comm, recv_reqs.data() + recv_reqs_i++);
-
-//        int data_count;
-//        MPI_Get_count(&data_receive_status, MPI_TYPE, &data_count);
-//        assert(data_count == partition_sizes[i]);
-//
-//        for (int j = 0; j < data_count; j++)
-//            all_data[all_data_counter++] = buf[j];
+                 comm, recv_reqs.data() + i);
     }
     for (auto &x: partition_results[comm_rank])
         all_data[all_data_counter++] = x;
