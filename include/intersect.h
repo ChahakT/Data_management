@@ -58,7 +58,12 @@ public:
     SmartIntersect(const SmartIntersect&) = delete;
     SmartIntersect& operator= (const SmartIntersect&) = delete;
     ~SmartIntersect();
+    std::vector<MPI_Request> pending_sends;
 private:
+    MPI_Request* get_new_req() {
+        pending_sends.push_back(MPI_Request());
+        return &pending_sends.back();
+    }
     std::vector<std::vector<int>> commGroupRanks;
     std::vector<MPI_Comm> commList;
     std::vector<IntersectHash> hashObjList;

@@ -71,18 +71,18 @@ template<class T>
 SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &partition_results, int comm_rank,
                                        int comm_size, MPI_Comm comm) {
     const auto MPI_TYPE = GET_TYPE<T>;
-    std::vector<MPI_Request> size_send_requests(comm_size, MPI_REQUEST_NULL);
-    std::vector<MPI_Request> data_send_requests(comm_size, MPI_REQUEST_NULL);
+//    std::vector<MPI_Request> size_send_requests(comm_size, MPI_REQUEST_NULL);
+//    std::vector<MPI_Request> data_send_requests(comm_size, MPI_REQUEST_NULL);
 
     for (int i = 0; i < comm_size; i++) {
         if (i == comm_rank) continue;
         int partition_size = partition_results[i].size();
-        MPI_Issend(&partition_size, 1, MPI_INT, i, static_cast<int>(MPI_CUSTOM_TAGS::SIZE_SEND_TAG), comm,
-                   &size_send_requests[i]);
+        MPI_Isend(&partition_size, 1, MPI_INT, i, static_cast<int>(MPI_CUSTOM_TAGS::SIZE_SEND_TAG), comm,
+                  get_new_req());
         if (partition_size == 0) continue;
         std::vector<T> &partitionData = partition_results[i];
-        MPI_Issend(partitionData.data(), partition_size, MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
-                   comm, &data_send_requests[i]);
+        MPI_Isend(partitionData.data(), partition_size, MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
+                   comm, get_new_req());
     }
 
     std::vector<MPI_Request> size_receive_requests(comm_size, MPI_REQUEST_NULL);
@@ -98,25 +98,44 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
             std::accumulate(partition_sizes.begin(), partition_sizes.end(), 0) + partition_results[comm_rank].size());
     uint all_data_counter = 0;
 
+    std::vector<MPI_Request> recv_reqs(comm_size);
+    int recv_reqs_i=0;
+    std::vector<std::unique_ptr<T[]>> bufs(comm_size);
     for (int i = 0; i < comm_size; i++) {
         if (i == comm_rank || partition_sizes[i] == 0) continue;
-        std::unique_ptr<T[]> buf = std::make_unique<T[]>(partition_sizes[i]);
-        MPI_Status data_receive_status;
-        MPI_Recv(buf.get(), partition_sizes[i], MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
-                 comm, &data_receive_status);
+        auto& buf = bufs[i];
+        buf = std::make_unique<T[]>(partition_sizes[i]);
 
-        int data_count;
-        MPI_Get_count(&data_receive_status, MPI_TYPE, &data_count);
-        assert(data_count == partition_sizes[i]);
+        MPI_Irecv(buf.get(), partition_sizes[i], MPI_TYPE, i, static_cast<int>(MPI_CUSTOM_TAGS::DATA_SEND_TAG),
+                 comm, recv_reqs.data() + recv_reqs_i++);
 
-        for (int j = 0; j < data_count; j++)
-            all_data[all_data_counter++] = buf[j];
+//        int data_count;
+//        MPI_Get_count(&data_receive_status, MPI_TYPE, &data_count);
+//        assert(data_count == partition_sizes[i]);
+//
+//        for (int j = 0; j < data_count; j++)
+//            all_data[all_data_counter++] = buf[j];
     }
     for (auto &x: partition_results[comm_rank])
         all_data[all_data_counter++] = x;
 
-    MPI_Waitall(comm_size, size_send_requests.data(), MPI_STATUSES_IGNORE);
-    MPI_Waitall(comm_size, data_send_requests.data(), MPI_STATUSES_IGNORE);
+    int k = recv_reqs_i;
+    do {
+        int idx = -100;
+        MPI_Status stat;
+        assert(MPI_SUCCESS == MPI_Waitany(k, recv_reqs.data(), &idx, &stat));
+        assert(idx > 0);
+        int data_count;
+        MPI_Get_count(&stat, MPI_TYPE, &data_count);
+        assert(data_count == partition_sizes[idx]);
+        auto& buf = bufs[idx];
+        for (int j = 0; j < data_count; j++)
+            all_data[all_data_counter++] = buf[j];
+    } while (--k);
+
+
+//    MPI_Waitall(comm_size, size_send_requests.data(), MPI_STATUSES_IGNORE);
+//    MPI_Waitall(comm_size, data_send_requests.data(), MPI_STATUSES_IGNORE);
 
     return all_data;
 }
@@ -153,6 +172,7 @@ std::vector<T> SmartIntersect<T>::findSetIntersection(std::vector<T> &v1, std::v
 
 template<class T>
 std::vector<T> SmartIntersect<T>::run(T *vR, T *vS, const uint nR, const uint nS) {
+    pending_sends.clear();
     std::vector<T> all_dataS;
     for (uint i = 0; i < commList.size(); i++) {
         if (commList[i] == MPI_COMM_NULL) continue;
@@ -163,7 +183,9 @@ std::vector<T> SmartIntersect<T>::run(T *vR, T *vS, const uint nR, const uint nS
     std::unordered_map<int, std::vector<T>> world_partition_results = partition_vector_inter(vR, nR);
     std::vector<T> all_dataR = exchange_partitions_inter(world_partition_results);
 
-    return findSetIntersection(all_dataR, all_dataS);
+    auto ret = findSetIntersection(all_dataR, all_dataS);
+    MPI_Waitall(pending_sends.size(), pending_sends.data(), MPI_STATUSES_IGNORE);
+    return ret;
 }
 
 template<class T>
