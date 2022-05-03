@@ -124,7 +124,7 @@ SmartIntersect<T>::exchange_partitions(std::unordered_map<int, std::vector<T>> &
         int idx = -100;
         MPI_Status stat;
         assert(MPI_SUCCESS == MPI_Waitany(k, recv_reqs.data(), &idx, &stat));
-        assert(idx > 0);
+        assert(idx >= 0);
         int data_count;
         MPI_Get_count(&stat, MPI_TYPE, &data_count);
         assert(data_count == partition_sizes[idx]);
